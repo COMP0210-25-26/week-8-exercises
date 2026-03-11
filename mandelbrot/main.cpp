@@ -4,9 +4,12 @@
 #include <iostream>
 #include <complex>
 
-using std::chrono::high_resolution_clock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
+typedef std::chrono::high_resolution_clock timingClock;
+
+double t_seconds(std::chrono::time_point<timingClock> t1, std::chrono::time_point<timingClock> t2)
+{
+    return (t2 - t1).count() / 1e9;
+}
 
 int main() {
 
@@ -24,7 +27,7 @@ int main() {
   std::complex<double> z, c;
   int n_outside = 0;
 
-  auto start = high_resolution_clock::now();
+  auto start = timingClock::now();
 
   // Iterate over entire domain
   for(int i=0; i<NPOINTS; ++i) 
@@ -34,12 +37,14 @@ int main() {
       // Set c to point inside domain
       c.real(x_min + i*dx);
       c.imag(y_min + j*dy);
+
       // Initial condition for z is c
       z = c;
       for (int iter=0; iter<MAXITER; iter++)
       {
         // Iterate z = z^2 + c
         z = z*z + c;
+
         // If |z| > 2, point is outside Mandelbrot set
         if (std::abs(z) > 2.0e0) 
         {
@@ -50,8 +55,8 @@ int main() {
     }
   }
 
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<milliseconds>(stop - start).count();
+  auto stop = timingClock::now();
+  double duration = t_seconds(start, stop);
 
   double prop_inside = (double)(NPOINTS*NPOINTS-n_outside)/(double)(NPOINTS*NPOINTS);
   double area = 2.0*2.5*1.125*prop_inside;
@@ -59,5 +64,5 @@ int main() {
 
   std::cout << "Area of Mandlebrot set = " << area << std::endl;
   std::cout << "Error = " << error << std::endl;
-  std::cout << "Time = " << duration << " ms" << std::endl;
+  std::cout << "Time = " << duration << " s" << std::endl;
 }
